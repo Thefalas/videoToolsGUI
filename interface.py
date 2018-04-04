@@ -21,6 +21,9 @@ class Ui_ventanaPrincipal(object):
         self.status_label = QtWidgets.QLabel(ventanaPrincipal)
         self.status_label.setGeometry(QtCore.QRect(40, 100, 201, 41))
         self.status_label.setObjectName("status_label")
+        self.stream_button = QtWidgets.QRadioButton(ventanaPrincipal)
+        self.stream_button.setGeometry(QtCore.QRect(290, 10, 101, 16))
+        self.stream_button.setObjectName("stream_button")
 
         self.retranslateUi(ventanaPrincipal)
         QtCore.QMetaObject.connectSlotsByName(ventanaPrincipal)
@@ -31,4 +34,5 @@ class Ui_ventanaPrincipal(object):
         self.saveAsImages_button.setText(_translate("ventanaPrincipal", "Save as Images"))
         self.close_button.setText(_translate("ventanaPrincipal", "Close"))
         self.status_label.setText(_translate("ventanaPrincipal", "Status"))
+        self.stream_button.setText(_translate("ventanaPrincipal", "Play video while saving"))
 

@@ -6,31 +6,31 @@ import numpy as np
 
 class VideoReader():
 
-    def __init__(self, videoFile):
+    def __init__(self, filePath):
         
-        self.videoFile = videoFile
+        self.filePath = filePath
         
-        video = pims.open(self.videoFile)
+        video = pims.open(self.filePath)
         # Calculamos el numero de frames del video (seguramente haya una manera mejor
         # de hacerlo usando OpenCV en lugar de pims)
         self.frameCount = len(video)
+        self.height = np.shape(video[0])[0]
+        self.width = np.shape(video[0])[1]
         
         self.minHeight = 0
-        self.maxHeight = np.shape(video[0])[0]
+        self.maxHeight = self.height
         self.minWidth = 0
-        self.maxWidth = np.shape(video[0])[1]
+        self.maxWidth = self.width
             
     def cropVideo(self, minHeight='none', maxHeight='none', 
                   minWidth='none', maxWidth='none'):
-        
-        video = pims.open(self.videoFile)
         
         if minHeight == 'none':
             self.minHeight = 0
         else:
             self.minHeight = minHeight            
         if maxHeight == 'none':
-            self.maxHeight = np.shape(video[0])[0]
+            self.maxHeight = self.height
         else:
             self.maxHeight = maxHeight
          
@@ -39,13 +39,13 @@ class VideoReader():
         else:
             self.minWidth = minWidth
         if maxWidth == 'none':
-            self.maxWidth = np.shape(video[0])[1]
+            self.maxWidth = self.width
         else:
             self.maxWidth = maxWidth        
         
     def saveAsImages(self, img_folder, stream=False, verbose=False):
         
-        video = cv2.VideoCapture(self.videoFile)
+        video = cv2.VideoCapture(self.filePath)
         
         i = 0
         while(video.isOpened()):

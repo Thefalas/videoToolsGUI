@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import sys
+import cv2
 from PyQt5 import QtCore, QtGui, QtWidgets
 from video import VideoReader
 from interface import Ui_ventanaPrincipal
@@ -25,14 +26,21 @@ class GuiEvents():
         self.gui.setupUi(dialog)
  
         # Connects "add" saveAsImages_button with a custom function (printMsg)
-        self.gui.saveAsImages_button.clicked.connect(self.saveImg)
+        self.gui.saveAsImages_button.clicked.connect(self.saveAsImages)
         self.gui.close_button.clicked.connect(self.closeWindow)
  
-    def saveImg(self):
+    def saveAsImages(self):
+       
+        # TODO: error when stream==False the interface hangs, saveAsImages()
+        # TODO: function should be called in a separate thread
+        stream = self.gui.stream_button.isChecked()
+        verbose=False
+        img_folder = 'D:/imagenes2/'
+        
         videoPelotas = VideoReader('D:/aire2.cine')
         videoPelotas.cropVideo(0,790,300,1190)
-        videoPelotas.saveAsImages('D:/imagenes2/', stream=True, verbose=False)
         self.gui.status_label.setText("Prueba")
+        videoPelotas.saveAsImages(img_folder, stream, verbose)
     
     def closeWindow(self):
         pass
