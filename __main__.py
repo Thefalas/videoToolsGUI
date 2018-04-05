@@ -1,46 +1,63 @@
 # -*- coding: utf-8 -*-
 import sys
-import cv2
+import threading
+import PyQt5
 from PyQt5 import QtCore, QtGui, QtWidgets
 from video import VideoReader
 from interface import Ui_ventanaPrincipal
 
-#cine2 = VideoSaver('D:/aire2.cine', 'D:/imagenes2/', stream=True, verbose=False)
-#uic.loadUi('C:/Users/malopez/Desktop/mainwindow.ui')
-"""
-pyuic5 mainwindow.ui --output mainW.py
-"""
+# This line makes the app look good on hiDPI screens
+PyQt5.QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
 
-class GuiEvents():
-    """ In this class we load the interface stored at interface.py and define
-        the events and connections linked to the actions performed to the 
-        different widgets (ex: click a button, etc) """
+class GuiEvents(Ui_ventanaPrincipal):
+    """ In this class we load the interface stored at interface.py (it
+        inherits from the interface class) and define the events and 
+        connections linked to the actions performed to the different widgets 
+        (ex: click a button, etc) """
+    
     def __init__(self, dialog):
         """ This method is executed when creating an instance of the class """
-        # We create an instance of the QT GUI Interface and store it as an
-        # attribute of the main class (so that is easy to access from the
-        # other methods of this class)
-        self.gui = Ui_ventanaPrincipal()
+        # We create an instance of the QT GUI Interface (so that is easy 
+        # to access from the other methods of this class)
+        Ui_ventanaPrincipal.__init__(self)
         # We pass the dialog object to the setupUi method of the GUI, it fills
         # the dialog with the widgets and other elements of the interface
-        self.gui.setupUi(dialog)
+        self.setupUi(dialog)
  
         # Connects "add" saveAsImages_button with a custom function (printMsg)
-        self.gui.saveAsImages_button.clicked.connect(self.saveAsImages)
-        self.gui.close_button.clicked.connect(self.closeWindow)
- 
-    def saveAsImages(self):
-       
+        self.saveAsImages_button.clicked.connect(self.saveAsImg)
+        self.play_button.clicked.connect(self.play)
+        self.close_button.clicked.connect(self.closeWindow) 
+    
+
+    def saveAsImg(self):
+        """ Here we define what happens when pressing the save button """
         # TODO: error when stream==False the interface hangs, saveAsImages()
         # TODO: function should be called in a separate thread
-        stream = self.gui.stream_button.isChecked()
+        stream = self.stream_button.isChecked()
         verbose=False
         img_folder = 'D:/imagenes2/'
-        
+
+#
+QtCore.QThread.run()     
+  
         videoPelotas = VideoReader('D:/aire2.cine')
         videoPelotas.cropVideo(0,790,300,1190)
-        self.gui.status_label.setText("Prueba")
-        videoPelotas.saveAsImages(img_folder, stream, verbose)
+        self.status_label.setText("Prueba")
+        self.saveAsImages_progressBar.setValue(5)
+        
+        """
+        # Launching the function in a new thread so that it doesn't hangs te gui
+        new_thread = threading.Thread(target=videoPelotas.saveAsImages(img_folder, verbose), args=())
+        new_thread.daemon = True # Daemonize thread
+        new_thread.start() # Start the execution
+        """
+        videoPelotas.saveAsImages(img_folder, verbose)
+        
+    def play(self):
+        videoPelotas = VideoReader('D:/aire2.cine')
+        videoPelotas.cropVideo(0,790,300,1190)
+        videoPelotas.playVideo()
     
     def closeWindow(self):
         pass
