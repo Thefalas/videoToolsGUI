@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
+import multiprocessing as mp
 import sys
 import threading
+import cv2
+import pims
 import PyQt5
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtWidgets import QWidget, QFileDialog
 from video import VideoReader
 from interface import Ui_ventanaPrincipal
 
-from PyQt5.QtWidgets import QApplication, QWidget, QInputDialog, QLineEdit, QFileDialog
-from PyQt5.QtGui import QIcon
 
 # This line makes the app look good on hiDPI screens
 PyQt5.QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
@@ -32,41 +34,79 @@ class GuiEvents(Ui_ventanaPrincipal):
         self.play_button.clicked.connect(self.play)
         self.close_button.clicked.connect(self.closeWindow)
         self.selectFile_button.clicked.connect(self.selectFile)
+        self.refreshData_button.clicked.connect(self.refreshInfo)
+        self.playFps_slider.valueChanged.connect(self.updatePlayLength)
+        
+        # Initializing a value for communicating with saveAsImages process
+        # and store te percentage of video currently saved to images
+        self.percentSaved = mp.Value('i', 0)
+        
+        # We create a timer that will tick every 1000 ms to update the progress
+        # bar (and possibly other tasks)
+        self.timer = QtCore.QTimer()
+        self.timer.setInterval(1000)
+        self.timer.start()
+        self.timer.timeout.connect(self.updateProgressBar)
         
     
     def saveAsImg(self):
-        worker = SaveAsImgThread(self)
-        worker.run()
-        
-
-#    def saveAsImg(self):
         """ Here we define what happens when pressing the save button """
-        # TODO: error when stream==False the interface hangs, saveAsImages()
-        # TODO: function should be called in a separate thread
-#        stream = self.stream_button.isChecked()
-#        verbose=False
-#        img_folder = 'D:/imagenes2/'   
-  
-#        videoPelotas = VideoReader('D:/aire2.cine')
-#        videoPelotas.cropVideo(0,790,300,1190)
-#        self.status_label.setText("Prueba")
-#        self.saveAsImages_progressBar.setValue(5)
-        
-        """
-        # Launching the function in a new thread so that it doesn't hangs te gui
-        new_thread = threading.Thread(target=videoPelotas.saveAsImages(img_folder, verbose), args=())
-        new_thread.daemon = True # Daemonize thread
-        new_thread.start() # Start the execution
-        """
-#        videoPelotas.saveAsImages(img_folder, verbose)
+        img_folder = 'D:/imagenes2/'
+        verbose = False
        
+        # A new process is created to save the video to images, this process
+        # is run as a daemon and prevents the GUI from hanging meanwhile
+        p = mp.Process(target=saveAsImg_Process, args=(img_folder, verbose, self.percentSaved,))
+        p.daemon = True
+        p.start()
+        #p.join()
+        #p.terminate()
+        print('New process started, saving images to:')
+        print('Process alive: ' + str(p.is_alive()))
+        
+            
+    def updateProgressBar(self):
+        self.saveAsImages_progressBar.setValue(self.percentSaved.value)
+        
+    
+    def refreshInfo(self):
+        try:
+            video = VideoReader(self.filePath_edit.text())
+            self.recSpeed_label.setText('Recording Speed: '+str(video.recordingSpeed)+' fps')
+            self.width_label.setText('Width: '+str(video.width)+' px')
+            self.height_label.setText('Height: '+str(video.height)+' px')
+            self.frameCount_label.setText('Frame Count: '+str(video.frameCount))
+            self.realTime_label.setText('Recorded Time: '+'{:.2f}'.format(video.realRecordedTime)+' s')
+            self.recDate_label.setText('Recording Date: '+video.recordingDate.strftime("%d %b %Y %H:%M"))
+            
+            self.updatePlayLength()
+            
+            #self.playFps_slider.setMaximum(video.recordingSpeed)
+        except:
+            print('Incorrect or empty file selected')
+            print(self.filePath_edit.text()) 
+         
+            
+    def updatePlayLength(self):
+        try:
+            video = VideoReader(self.filePath_edit.text())
+            t = video.frameCount/self.playFps_slider.value()
+            multiplier = '{:.1f}'.format(video.recordingSpeed/self.playFps_slider.value())
+            self.playLength_label.setText('Video Length: '+ '{:.2f}'.format(t)+' s (X '+multiplier+')')
+        except:
+            print('Incorrect or empty file selected')
+            print(self.filePath_edit.text()) 
+       
+        
     def play(self):
-        if self.filePath_edit.text == None:
-            pass
-        else:
-            videoPelotas = VideoReader('D:/aire2.cine')#'D:/aire2.cine'
+        try:
+            fps = self.playFps_slider.value()
+            videoPelotas = VideoReader(self.filePath_edit.text())#'D:/aire2.cine'
             videoPelotas.cropVideo(0,790,300,1190)
-            videoPelotas.playVideo()
+            videoPelotas.playVideo(fps)
+        except:
+            print('Incorrect or empty file selected')
+            print(self.filePath_edit.text())
     
     def selectFile(self):
         fileDialog = SelectFileDialog()
@@ -79,26 +119,43 @@ class GuiEvents(Ui_ventanaPrincipal):
 
 
 
+def saveAsImg_Process(img_folder, verbose, percentSaved):
+    """ Here we define what happens when pressing the save button """
+    # TODO: error the interface hangs, saveAsImages()
+    # TODO: function should be called in a separate thread
 
+    #verbose=False
+    #img_folder = 'D:/imagenes2/'    
 
-class SaveAsImgThread(QtCore.QThread): #QtCore.QObject
-    def __init__(self, GuiEvents):
-        #super().__init__() # inits the parent class
-        self.gui = GuiEvents
-    def run(self):
-        """ Here we define what happens when pressing the save button """
-        # TODO: error the interface hangs, saveAsImages()
-        # TODO: function should be called in a separate thread
+    #gui.status_label.setText("Prueba")
+        
+    video = pims.open('D:/aire2.cine')
+    frameCount = len(video)
+    video = cv2.VideoCapture('D:/aire2.cine')
+        
+        
+    i = 0
+    while(video.isOpened()):
+        # Leemos el frame actual y lo asignamos a la variable frame
+        ret, frame = video.read()
+        # Recorto el frame a la zona que me interesa (es simplemente operar 
+        # con arrays de numpy)
+        frame_crop = frame[0:790, 300:1190]
+        # Guardo el frame recortado a una imagen
+        path = img_folder + 'img' + "{:06d}".format(i) + '.png'
+        cv2.imwrite(path, frame_crop)
+            
+        i+=1
+        # Guardamos el porcentaje que llevamos completado en una variable
+        # compartida entre este proceso y el principal
+        percentSaved.value = int(100*i/frameCount)          
+        if verbose == True:
+            percent = " - " + "{:.2f}".format(100*i/frameCount) + " %"
+            print("Frame nº: " + str(i)+" / "+str(frameCount) + percent)
 
-        verbose=False
-        img_folder = 'D:/imagenes2/'    
-  
-        videoPelotas = VideoReader('D:/aire2.cine')
-        videoPelotas.cropVideo(0,790,300,1190)
-        self.gui.status_label.setText("Prueba")
-        self.gui.saveAsImages_progressBar.setValue(int(100*videoPelotas.currentFrame_save/videoPelotas.frameCount))
+    # Cerramos el stream de video
+    video.release()
 
-        videoPelotas.saveAsImages(img_folder, verbose)        
 
 
 
@@ -151,14 +208,14 @@ class SelectFileDialog(QWidget):
 
 
 
-
-# This script needs to be executed form command line (errors if from IDE)
-# A PyQt5 application is created
-app = QtWidgets.QApplication(sys.argv)
-# We create a QDialog object to show our GUI interface
-dialog = QtWidgets.QDialog()
-# We pass this dialog object as an argument to the main class
-program = GuiEvents(dialog)
-# Showing the main window until an exec condition is met
-dialog.show()
-sys.exit(app.exec_())
+if __name__ == '__main__':
+    # This script needs to be executed form command line (errors if from IDE)
+    # A PyQt5 application is created
+    app = QtWidgets.QApplication(sys.argv)
+    # We create a QDialog object to show our GUI interface
+    dialog = QtWidgets.QDialog()
+    # We pass this dialog object as an argument to the main class
+    program = GuiEvents(dialog)
+    # Showing the main window until an exec condition is met
+    dialog.show()
+    sys.exit(app.exec_())

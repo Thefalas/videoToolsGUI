@@ -14,16 +14,20 @@ class VideoReader():
         video = pims.open(self.filePath)
         # Calculamos el numero de frames del video (seguramente haya una manera mejor
         # de hacerlo usando OpenCV en lugar de pims)
-        self.frameCount = len(video)
+        self.frameCount = video.len()
         self.currentFrame_save = 0 # When saving, keeps track of progress
         self.currentFrame_play = 0 # When playing, keeps track of progress
-        self.height = np.shape(video[0])[0]
-        self.width = np.shape(video[0])[1]
+        self.height = video.frame_shape[1]
+        self.width = video.frame_shape[0]
         
         self.minHeight = 0
         self.maxHeight = self.height
         self.minWidth = 0
         self.maxWidth = self.width
+        
+        self.recordingSpeed = video.frame_rate
+        self.realRecordedTime = video.get_time(video.len()-1)
+        self.recordingDate = video.frame_time_stamps[0][0]
             
     def cropVideo(self, minHeight='none', maxHeight='none', 
                   minWidth='none', maxWidth='none'):
@@ -70,7 +74,9 @@ class VideoReader():
         video.release()
 
 
-    def playVideo(self):
+    def playVideo(self, fps=1):
+        
+        waitTime = int(1000/fps)
         
         video = cv2.VideoCapture(self.filePath)
 
@@ -86,7 +92,7 @@ class VideoReader():
             # Mostramos en pantalla el video (esperando 3ms entre frame y frame) 
             # hasta que llega al final o se pulsa la tecla q
             cv2.imshow('Video', frame_crop)
-            if cv2.waitKey(1) & 0xFF == ord('q'):
+            if cv2.waitKey(waitTime) & 0xFF == ord('q'):
                 break
 #           video.release()
 #           cv2.destroyAllWindows()
