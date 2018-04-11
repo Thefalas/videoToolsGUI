@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import multiprocessing as mp
 import sys
+import os
 import threading
 import cv2
 import pims
@@ -36,6 +37,10 @@ class GuiEvents(Ui_ventanaPrincipal):
         self.selectFile_button.clicked.connect(self.selectFile)
         self.refreshData_button.clicked.connect(self.refreshInfo)
         self.playFps_slider.valueChanged.connect(self.updatePlayLength)
+        self.selectFolder_button.clicked.connect(self.selectFolder)
+        
+        self.folderPath_edit.textChanged.connect(self.enableButtons)
+        self.filePath_edit.textChanged.connect(self.enableButtons)
         
         # Initializing a value for communicating with saveAsImages process
         # and store te percentage of video currently saved to images
@@ -48,21 +53,43 @@ class GuiEvents(Ui_ventanaPrincipal):
         self.timer.start()
         self.timer.timeout.connect(self.updateProgressBar)
         
+        
+    def enableButtons(self):
+        if os.path.isfile(self.filePath_edit.text()):
+            self.play_button.setDisabled(False)
+        else:
+            self.play_button.setDisabled(True)
+        if os.path.isdir(self.folderPath_edit.text()) and os.path.isfile(self.filePath_edit.text()):
+            self.saveAsImages_button.setDisabled(False)
+        else:
+            self.saveAsImages_button.setDisabled(True)
+  
     
     def saveAsImg(self):
         """ Here we define what happens when pressing the save button """
-        img_folder = 'D:/imagenes2/'
-        verbose = False
+        if os.path.isdir(self.folderPath_edit.text()) and os.path.isfile(self.filePath_edit.text()): # If directory  and file exists:
+            img_folder = self.folderPath_edit.text() + '/' # 'D:/imagenes2/'
+            verbose = False
+            
+            videoPath = self.filePath_edit.text()
+            
+            crop = (self.minHeight_slider.value(),
+                    self.maxHeight_slider.value(),
+                    self.minWidth_slider.value(),
+                    self.maxWidth_slider.value())
        
-        # A new process is created to save the video to images, this process
-        # is run as a daemon and prevents the GUI from hanging meanwhile
-        p = mp.Process(target=saveAsImg_Process, args=(img_folder, verbose, self.percentSaved,))
-        p.daemon = True
-        p.start()
-        #p.join()
-        #p.terminate()
-        print('New process started, saving images to:')
-        print('Process alive: ' + str(p.is_alive()))
+            # A new process is created to save the video to images, this process
+            # is run as a daemon and prevents the GUI from hanging meanwhile
+            p = mp.Process(target=saveAsImg_Process, args=(videoPath, img_folder, crop, verbose, self.percentSaved,))
+            p.daemon = True
+            p.start()
+            #p.join()
+            #p.terminate()
+            print('New process started, saving images to:')
+            print('Process alive: ' + str(p.is_alive()))
+        else:
+            print('Incorrect or inexistent folder selected')
+            print(self.folderPath_edit.text()+'/')            
         
             
     def updateProgressBar(self):
@@ -81,18 +108,31 @@ class GuiEvents(Ui_ventanaPrincipal):
             
             self.updatePlayLength()
             
+            self.maxHeight_slider.setMaximum(video.height)
+            self.maxWidth_slider.setMaximum(video.width)
+            
             #self.playFps_slider.setMaximum(video.recordingSpeed)
         except:
             print('Incorrect or empty file selected')
-            print(self.filePath_edit.text()) 
+            print(self.filePath_edit.text())
+            # Return values to default
+            self.recSpeed_label.setText('Recording Speed: ')
+            self.width_label.setText('Width: ')
+            self.height_label.setText('Height: ')
+            self.frameCount_label.setText('Frame Count: ')
+            self.realTime_label.setText('Recorded Time: ')
+            self.recDate_label.setText('Recording Date: ')
+            self.playLength_label.setText('Video Length: ')
+
          
             
     def updatePlayLength(self):
+        """ This function updates te labels indicating video length when played """
         try:
             video = VideoReader(self.filePath_edit.text())
             t = video.frameCount/self.playFps_slider.value()
             multiplier = '{:.1f}'.format(video.recordingSpeed/self.playFps_slider.value())
-            self.playLength_label.setText('Video Length: '+ '{:.2f}'.format(t)+' s (X '+multiplier+')')
+            self.playLength_label.setText('Video Length: '+ '{:.2f}'.format(t)+' s ('+multiplier+'X)')
         except:
             print('Incorrect or empty file selected')
             print(self.filePath_edit.text()) 
@@ -102,16 +142,27 @@ class GuiEvents(Ui_ventanaPrincipal):
         try:
             fps = self.playFps_slider.value()
             videoPelotas = VideoReader(self.filePath_edit.text())#'D:/aire2.cine'
-            videoPelotas.cropVideo(0,790,300,1190)
+            videoPelotas.cropVideo(self.minHeight_slider.value(),
+                                   self.maxHeight_slider.value(),
+                                   self.minWidth_slider.value(),
+                                   self.maxWidth_slider.value()) #0,790,300,1190
             videoPelotas.playVideo(fps)
         except:
             print('Incorrect or empty file selected')
             print(self.filePath_edit.text())
     
+    
     def selectFile(self):
         fileDialog = SelectFileDialog()
         filePath = fileDialog.initUI()
-        self.filePath_edit.setText(filePath)       
+        self.filePath_edit.setText(filePath)
+        
+        
+    def selectFolder(self):
+        folderDialog = SelectFolderDialog()
+        folderPath = folderDialog.initUI()
+        self.folderPath_edit.setText(folderPath)
+    
     
     def closeWindow(self):
         pass
@@ -119,20 +170,17 @@ class GuiEvents(Ui_ventanaPrincipal):
 
 
 
-def saveAsImg_Process(img_folder, verbose, percentSaved):
-    """ Here we define what happens when pressing the save button """
-    # TODO: error the interface hangs, saveAsImages()
-    # TODO: function should be called in a separate thread
+def saveAsImg_Process(videoPath, img_folder, crop, verbose, percentSaved):
+    """ Here we define what happens when pressing the save button. 
+        This method executes u¡in a new process """
 
     #verbose=False
     #img_folder = 'D:/imagenes2/'    
 
-    #gui.status_label.setText("Prueba")
-        
-    video = pims.open('D:/aire2.cine')
-    frameCount = len(video)
-    video = cv2.VideoCapture('D:/aire2.cine')
-        
+    video = VideoReader(videoPath)
+    frameCount = video.frameCount
+
+    video = cv2.VideoCapture(videoPath)        
         
     i = 0
     while(video.isOpened()):
@@ -140,7 +188,7 @@ def saveAsImg_Process(img_folder, verbose, percentSaved):
         ret, frame = video.read()
         # Recorto el frame a la zona que me interesa (es simplemente operar 
         # con arrays de numpy)
-        frame_crop = frame[0:790, 300:1190]
+        frame_crop = frame[crop[0]:crop[1], crop[2]:crop[3]]
         # Guardo el frame recortado a una imagen
         path = img_folder + 'img' + "{:06d}".format(i) + '.png'
         cv2.imwrite(path, frame_crop)
@@ -159,6 +207,32 @@ def saveAsImg_Process(img_folder, verbose, percentSaved):
 
 
 
+
+class SelectFolderDialog(QWidget):
+ 
+    def __init__(self):
+        super().__init__()
+        self.title = 'Seleccionar Carpeta'
+        self.left = 10
+        self.top = 10
+        self.width = 800
+        self.height = 600
+
+    def initUI(self):
+        self.setWindowTitle(self.title)
+        self.setGeometry(self.left, self.top, self.width, self.height)
+ 
+        result = self.openFolderDialog() 
+        self.show()
+        
+        return result
+ 
+    def openFolderDialog(self):    
+        options = QFileDialog.Options()
+        #options |= QFileDialog.DontUseNativeDialog
+        folder = QFileDialog.getExistingDirectory(self, "Seleccionar Carpeta", "", options=options)
+        if folder:
+            return folder
 
 
  
@@ -186,7 +260,8 @@ class SelectFileDialog(QWidget):
     def openFileNameDialog(self):    
         options = QFileDialog.Options()
         #options |= QFileDialog.DontUseNativeDialog
-        fileName, _ = QFileDialog.getOpenFileName(self,"Selecciona un archivo de video", "","All Files (*);;Python Files (*.py)", options=options)
+        fileName, _ = QFileDialog.getOpenFileName(self,"Selecciona un archivo de video", "","Cine Files (*.cine);;All Files (*)", options=options)
+        #folder, _ = QFileDialog.getExistingDirectory(self, " kkk", "",options=options)
         if fileName:
             return fileName
  
@@ -212,6 +287,7 @@ if __name__ == '__main__':
     # This script needs to be executed form command line (errors if from IDE)
     # A PyQt5 application is created
     app = QtWidgets.QApplication(sys.argv)
+    # app.setStyleSheet(open('C:/Users/malopez/Desktop/videoToolsGUI/theme.stylesheet').read())
     # We create a QDialog object to show our GUI interface
     dialog = QtWidgets.QDialog()
     # We pass this dialog object as an argument to the main class

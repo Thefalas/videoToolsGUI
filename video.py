@@ -12,9 +12,7 @@ class VideoReader():
         self.filePath = filePath
         
         video = pims.open(self.filePath)
-        # Calculamos el numero de frames del video (seguramente haya una manera mejor
-        # de hacerlo usando OpenCV en lugar de pims)
-        self.frameCount = video.len()
+        
         self.currentFrame_save = 0 # When saving, keeps track of progress
         self.currentFrame_play = 0 # When playing, keeps track of progress
         self.height = video.frame_shape[1]
@@ -26,8 +24,15 @@ class VideoReader():
         self.maxWidth = self.width
         
         self.recordingSpeed = video.frame_rate
-        self.realRecordedTime = video.get_time(video.len()-1)
-        self.recordingDate = video.frame_time_stamps[0][0]
+        try:
+            self.frameCount = video.len()
+            self.realRecordedTime = video.get_time(video.len()-1)
+            self.recordingDate = video.frame_time_stamps[0][0]
+        except:
+            # Support for more video formats is needed
+            self.frameCount = 0
+            self.realRecordedTime = 0
+            self.recordingDate = 0
             
     def cropVideo(self, minHeight='none', maxHeight='none', 
                   minWidth='none', maxWidth='none'):

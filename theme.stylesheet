@@ -1,1 +1,5 @@
-play_button { color: red }
+QPushButton { color: red }
+
+QDialog { background-color: black }
+
+

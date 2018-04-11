@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>574</width>
-    <height>464</height>
+    <width>592</width>
+    <height>550</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -17,13 +17,16 @@
    </sizepolicy>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Video Tools Alpha</string>
   </property>
   <widget class="QPushButton" name="saveAsImages_button">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>90</y>
+     <y>130</y>
      <width>131</width>
      <height>51</height>
     </rect>
@@ -42,7 +45,7 @@
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>230</y>
+     <y>420</y>
      <width>131</width>
      <height>51</height>
     </rect>
@@ -54,8 +57,8 @@
   <widget class="QLabel" name="status_label">
    <property name="geometry">
     <rect>
-     <x>480</x>
-     <y>20</y>
+     <x>500</x>
+     <y>10</y>
      <width>61</width>
      <height>20</height>
     </rect>
@@ -64,24 +67,14 @@
     <string>Status</string>
    </property>
   </widget>
-  <widget class="QRadioButton" name="stream_button">
-   <property name="geometry">
-    <rect>
-     <x>470</x>
-     <y>10</y>
-     <width>101</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Play video while saving</string>
-   </property>
-  </widget>
   <widget class="QPushButton" name="play_button">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>160</y>
+     <y>200</y>
      <width>131</width>
      <height>51</height>
     </rect>
@@ -89,12 +82,15 @@
    <property name="text">
     <string>Play Video</string>
    </property>
+   <property name="checkable">
+    <bool>false</bool>
+   </property>
   </widget>
   <widget class="QProgressBar" name="saveAsImages_progressBar">
    <property name="geometry">
     <rect>
      <x>170</x>
-     <y>90</y>
+     <y>130</y>
      <width>341</width>
      <height>51</height>
     </rect>
@@ -107,7 +103,7 @@
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>50</y>
+     <y>40</y>
      <width>401</width>
      <height>20</height>
     </rect>
@@ -117,7 +113,7 @@
    <property name="geometry">
     <rect>
      <x>430</x>
-     <y>50</y>
+     <y>40</y>
      <width>80</width>
      <height>21</height>
     </rect>
@@ -130,7 +126,7 @@
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>30</y>
+     <y>20</y>
      <width>101</width>
      <height>16</height>
     </rect>
@@ -143,9 +139,9 @@
    <property name="geometry">
     <rect>
      <x>170</x>
-     <y>150</y>
+     <y>270</y>
      <width>341</width>
-     <height>231</height>
+     <height>201</height>
     </rect>
    </property>
   </widget>
@@ -153,12 +149,12 @@
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>300</y>
+     <y>270</y>
      <width>131</width>
      <height>131</height>
     </rect>
    </property>
-   <layout class="QVBoxLayout" name="verticalLayout">
+   <layout class="QVBoxLayout" name="infoLayout">
     <item>
      <widget class="QPushButton" name="refreshData_button">
       <property name="text">
@@ -213,13 +209,13 @@
   <widget class="QWidget" name="verticalLayoutWidget_2">
    <property name="geometry">
     <rect>
-     <x>260</x>
-     <y>390</y>
-     <width>251</width>
-     <height>41</height>
+     <x>170</x>
+     <y>200</y>
+     <width>341</width>
+     <height>51</height>
     </rect>
    </property>
-   <layout class="QVBoxLayout" name="verticalLayout_2">
+   <layout class="QVBoxLayout" name="fpsLayout">
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout">
       <item>
@@ -248,16 +244,177 @@
     <item>
      <widget class="QSlider" name="playFps_slider">
       <property name="minimum">
-       <number>5</number>
+       <number>1</number>
       </property>
       <property name="maximum">
-       <number>300</number>
+       <number>120</number>
       </property>
       <property name="value">
        <number>30</number>
       </property>
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QLineEdit" name="folderPath_edit">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>90</y>
+     <width>401</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="selectFolder_button">
+   <property name="geometry">
+    <rect>
+     <x>430</x>
+     <y>90</y>
+     <width>80</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Explorar</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="imagesFolder_label">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>70</y>
+     <width>121</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Ruta a la carpeta de imagenes:</string>
+   </property>
+  </widget>
+  <widget class="QWidget" name="">
+   <property name="geometry">
+    <rect>
+     <x>510</x>
+     <y>270</y>
+     <width>51</width>
+     <height>201</height>
+    </rect>
+   </property>
+   <layout class="QHBoxLayout" name="cropLayoutHS">
+    <item>
+     <widget class="QSlider" name="minHeight_slider">
+      <property name="maximum">
+       <number>800</number>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QSlider" name="maxHeight_slider">
+      <property name="maximum">
+       <number>800</number>
+      </property>
+      <property name="value">
+       <number>800</number>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QWidget" name="">
+   <property name="geometry">
+    <rect>
+     <x>170</x>
+     <y>470</y>
+     <width>341</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <layout class="QVBoxLayout" name="cropLayoutWS">
+    <item>
+     <widget class="QSlider" name="minWidth_slider">
+      <property name="maximum">
+       <number>1280</number>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QSlider" name="maxWidth_slider">
+      <property name="maximum">
+       <number>1280</number>
+      </property>
+      <property name="value">
+       <number>1280</number>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QWidget" name="">
+   <property name="geometry">
+    <rect>
+     <x>150</x>
+     <y>470</y>
+     <width>21</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <layout class="QVBoxLayout" name="cropLayoutW">
+    <item>
+     <widget class="QLabel" name="label_4">
+      <property name="text">
+       <string>0</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QLabel" name="label_3">
+      <property name="text">
+       <string>1280</string>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QWidget" name="">
+   <property name="geometry">
+    <rect>
+     <x>510</x>
+     <y>250</y>
+     <width>51</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <layout class="QHBoxLayout" name="cropLayoutH">
+    <item>
+     <widget class="QLabel" name="label">
+      <property name="text">
+       <string>0</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QLabel" name="label_2">
+      <property name="text">
+       <string>800</string>
       </property>
      </widget>
     </item>
@@ -278,7 +435,7 @@
     </hint>
     <hint type="destinationlabel">
      <x>133</x>
-     <y>308</y>
+     <y>238</y>
     </hint>
    </hints>
   </connection>
@@ -289,12 +446,76 @@
    <slot>setNum(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>345</x>
-     <y>425</y>
+     <x>195</x>
+     <y>205</y>
     </hint>
     <hint type="destinationlabel">
-     <x>409</x>
-     <y>397</y>
+     <x>291</x>
+     <y>167</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>minHeight_slider</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>label</receiver>
+   <slot>setNum(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>521</x>
+     <y>313</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>523</x>
+     <y>215</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>maxHeight_slider</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>label_2</receiver>
+   <slot>setNum(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>545</x>
+     <y>351</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>550</x>
+     <y>216</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>minWidth_slider</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>label_4</receiver>
+   <slot>setNum(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>481</x>
+     <y>439</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>169</x>
+     <y>438</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>maxWidth_slider</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>label_3</receiver>
+   <slot>setNum(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>474</x>
+     <y>464</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>156</x>
+     <y>466</y>
     </hint>
    </hints>
   </connection>
