@@ -3,6 +3,8 @@ import os
 import cv2 # OpenCV
 import pims
 import numpy as np
+import pandas as pd
+import trackpy as tp
 
 
 class VideoReader():
@@ -105,3 +107,86 @@ class VideoReader():
         # Cerramos el stream de video y las ventanas abiertas
         video.release()
         cv2.destroyAllWindows()
+        
+        
+    def detectCircles(self, initialFrame, lastFrame):
+        # We initialize an empty (actually just a row with zeros) pandas DataFrame
+        # with the correct shape and types to store circles detected by OpenCV and 
+        # later pass those to trackpy's linking function.
+        # TODO: I'm sure there's a simpler way of doing this.
+        A = np.zeros((1, 8), dtype=np.float64)
+        B = np.zeros((1, 1), dtype=np.int64)
+        names = ('x', 'y', 'mass', 'size', 'ecc', 'signal', 'raw_mass', 'ep')
+        A = pd.DataFrame(A, index=('-1',), columns=names)
+        B = pd.DataFrame(B, index=('-1',), columns=('frame',))
+        circles_tp = pd.concat((A, B), axis=1)
+        
+        video = cv2.VideoCapture(self.filePath)
+        
+        c = 0 # Accumulator, increases each time a circle is detected
+        n = 1 # Simple acumulador, para llevar la cuenta de por cual frame voy
+        while(video.isOpened()):
+            # Leemos el frame actual y lo asignamos a la variable frame
+            frameExists, frame = video.read()
+            
+            if n<initialFrame+1:
+                n+=1
+                pass
+            elif n>lastFrame+1:
+                break
+            else:
+                # Recorto el frame a la zona que me interesa (es simplemente operar 
+                # con arrays de numpy)
+                frame_crop = frame[self.minHeight:self.maxHeight, self.minWidth:self.maxWidth]
+                b_frame = cv2.medianBlur(frame_crop, 11)
+                b_frame_gray = cv2.cvtColor(b_frame, cv2.COLOR_BGR2GRAY)
+                # Detectamos los circulos dentro de una clausula try para evitar que el
+                # programa se cierre cuando en algun frame no se localiza ningún 
+                # círculo (en ese caso OpenCV lanza una excepcion)
+                try:
+                    circles = cv2.HoughCircles(b_frame_gray,cv2.HOUGH_GRADIENT,1,20,param1=50,
+                                           param2=30,minRadius=55,maxRadius=72)
+                    # Lo siguiente es necesario para que se dibujen los circulos
+                    circles = np.uint16(np.around(circles))
+        
+                    # For each circle detected we add a new row to the circles_tp DataFrame
+                    # After that, we draw a circle over the current frame image.
+                    for i in circles[0]:
+                        # We firstly extract (x, y) positions of the circle i
+                        A = np.zeros((1, 8), dtype=np.float64)
+                        A[0,0] = i[0]
+                        A[0,1] = i[1]
+                        # B (last column) equals the current frame number
+                        B = n-1
+                        names = ('x', 'y', 'mass', 'size', 'ecc', 'signal', 'raw_mass', 'ep')
+                        A = pd.DataFrame(A, index=(str(c),), columns=names)
+                        B = pd.DataFrame(B, index=(str(c),), columns=('frame',))
+                        new_circle = pd.concat((A, B), axis=1)
+                        circles_tp = pd.concat((circles_tp, new_circle), axis=0)
+                        c+=1
+
+                        # Draw the outer circle [(x,y), radius, rgb]
+                        #cv2.circle(frame_crop,(i[0],i[1]),i[2],(200, 153, 102),2)
+                        # Draw the center of the circle
+                        #cv2.circle(frame_crop,(i[0],i[1]),2,(255, 255, 255),3)    
+              
+                except:
+                    print('No circles detected in frame nº:')
+    
+            #cv2.imshow('detected circles',frame_crop)
+        
+                if cv2.waitKey(10) & 0xFF == ord('q'):
+                    break
+                n+=1 # Al acabar de procesar este frame aumentamos en 1 el acumulador
+
+        # Cerramos el stream de video
+        video.release()
+        # We delete the first row of circles_tp, since it was only used for 
+        # initialization and is no longer needed.
+        circles_tp = circles_tp.drop('-1')
+        return circles_tp
+    
+    
+    def linkTrajectories(self, circles_tp):
+        t = tp.link_df(circles_tp, 5, memory=10)
+        return t
