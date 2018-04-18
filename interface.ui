@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1183</width>
+    <width>1230</width>
     <height>702</height>
    </rect>
   </property>
@@ -491,7 +491,11 @@
           </widget>
          </item>
          <item>
-          <widget class="QSpinBox" name="initialFrame_spinBox"/>
+          <widget class="QSpinBox" name="initialFrame_spinBox">
+           <property name="maximum">
+            <number>100000</number>
+           </property>
+          </widget>
          </item>
         </layout>
        </item>
@@ -505,7 +509,11 @@
           </widget>
          </item>
          <item>
-          <widget class="QSpinBox" name="finalFrame_spinBox"/>
+          <widget class="QSpinBox" name="finalFrame_spinBox">
+           <property name="maximum">
+            <number>100000</number>
+           </property>
+          </widget>
          </item>
         </layout>
        </item>

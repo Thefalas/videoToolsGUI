@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_ventanaPrincipal(object):
     def setupUi(self, ventanaPrincipal):
         ventanaPrincipal.setObjectName("ventanaPrincipal")
-        ventanaPrincipal.resize(1183, 702)
+        ventanaPrincipal.resize(1230, 702)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -263,6 +263,7 @@ class Ui_ventanaPrincipal(object):
         self.label_6.setObjectName("label_6")
         self.horizontalLayout_10.addWidget(self.label_6)
         self.initialFrame_spinBox = QtWidgets.QSpinBox(ventanaPrincipal)
+        self.initialFrame_spinBox.setMaximum(100000)
         self.initialFrame_spinBox.setObjectName("initialFrame_spinBox")
         self.horizontalLayout_10.addWidget(self.initialFrame_spinBox)
         self.horizontalLayout_11.addLayout(self.horizontalLayout_10)
@@ -272,6 +273,7 @@ class Ui_ventanaPrincipal(object):
         self.label_7.setObjectName("label_7")
         self.horizontalLayout_8.addWidget(self.label_7)
         self.finalFrame_spinBox = QtWidgets.QSpinBox(ventanaPrincipal)
+        self.finalFrame_spinBox.setMaximum(100000)
         self.finalFrame_spinBox.setObjectName("finalFrame_spinBox")
         self.horizontalLayout_8.addWidget(self.finalFrame_spinBox)
         self.horizontalLayout_11.addLayout(self.horizontalLayout_8)

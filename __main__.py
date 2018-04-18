@@ -128,6 +128,9 @@ class GuiEvents(Ui_ventanaPrincipal):
             self.maxHeight_slider.setMaximum(video.height)
             self.maxWidth_slider.setMaximum(video.width)
             
+            self.initialFrame_spinBox.setMaximum(video.frameCount)
+            self.finalFrame_spinBox.setMaximum(video.frameCount)
+            
             #self.playFps_slider.setMaximum(video.recordingSpeed)
         except:
             print('Incorrect or empty file selected')
@@ -341,9 +344,13 @@ class PandasModel(QtCore.QAbstractTableModel):
     def data(self, index, role=QtCore.Qt.DisplayRole):
         if index.isValid():
             if role == QtCore.Qt.DisplayRole:
-                return QtCore.QVariant(str(
-                    self._data.values[index.row()][index.column()]))
-        return QtCore.QVariant()
+                return str(self._data.values[index.row()][index.column()])
+        return None
+
+    def headerData(self, col, orientation, role):
+        if orientation == QtCore.Qt.Horizontal and role == QtCore.Qt.DisplayRole:
+            return self._data.columns[col]
+        return None
 
 
 
