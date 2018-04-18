@@ -154,8 +154,9 @@ class VideoReader():
                     for i in circles[0]:
                         # We firstly extract (x, y) positions of the circle i
                         A = np.zeros((1, 8), dtype=np.float64)
-                        A[0,0] = i[0]
-                        A[0,1] = i[1]
+                        A[0,0] = i[0] # x center
+                        A[0,1] = i[1] # y center
+                        A[0,3] = i[2] # diameter
                         # B (last column) equals the current frame number
                         B = n-1
                         names = ('x', 'y', 'mass', 'size', 'ecc', 'signal', 'raw_mass', 'ep')
@@ -187,6 +188,24 @@ class VideoReader():
         return circles_tp
     
     
-    def linkTrajectories(self, circles_tp):
-        t = tp.link_df(circles_tp, 5, memory=10)
-        return t
+    def linkTrajectories(self, circles_tp, removeDrift=False):
+        
+        trajectories = tp.link_df(circles_tp, 5, memory=10)
+        if removeDrift == True:
+            drift = tp.compute_drift(trajectories)
+            trajectories = tp.subtract_drift(trajectories.copy(), drift)
+            
+        return trajectories
+    
+    
+    
+    
+    
+    
+    
+    """
+    frames = pims.open('D:/imagenes2/img000000.png')
+    frame = frames[0][:,:,0] #Para hacerlo greyscale
+    f = tp.locate(frame, 55, minmass=20)
+    tp.annotate(f, frame)
+    """

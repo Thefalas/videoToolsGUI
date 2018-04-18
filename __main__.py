@@ -38,9 +38,14 @@ class GuiEvents(Ui_ventanaPrincipal):
         self.refreshData_button.clicked.connect(self.refreshInfo)
         self.playFps_slider.valueChanged.connect(self.updatePlayLength)
         self.selectFolder_button.clicked.connect(self.selectFolder)
+        self.track_button.clicked.connect(self.trackParticles)
         
         self.folderPath_edit.textChanged.connect(self.enableButtons)
         self.filePath_edit.textChanged.connect(self.enableButtons)
+        
+        self.initialFrame_spinBox.valueChanged.connect(self.updateTrackButton)
+        self.finalFrame_spinBox.valueChanged.connect(self.updateTrackButton)
+        self.filePath_edit.textChanged.connect(self.updateTrackButton)
         
         # Initializing a value for communicating with saveAsImages process
         # and store te percentage of video currently saved to images
@@ -52,6 +57,17 @@ class GuiEvents(Ui_ventanaPrincipal):
         self.timer.setInterval(1000)
         self.timer.start()
         self.timer.timeout.connect(self.updateProgressBar)
+        
+    def updateTrackButton(self):
+        initialFrame = self.initialFrame_spinBox.value()
+        finalFrame = self.finalFrame_spinBox.value()
+        n_frames = finalFrame - initialFrame
+        self.framesFinalminusInitial_label.setText(str(n_frames+1)+' frames')
+
+        if os.path.isfile(self.filePath_edit.text()) and n_frames>=0:
+            self.track_button.setDisabled(False)
+        else:
+            self.track_button.setDisabled(True)
         
         
     def enableButtons(self):
@@ -141,12 +157,12 @@ class GuiEvents(Ui_ventanaPrincipal):
     def play(self):
         try:
             fps = self.playFps_slider.value()
-            videoPelotas = VideoReader(self.filePath_edit.text())#'D:/aire2.cine'
-            videoPelotas.cropVideo(self.minHeight_slider.value(),
-                                   self.maxHeight_slider.value(),
-                                   self.minWidth_slider.value(),
-                                   self.maxWidth_slider.value()) #0,790,300,1190
-            videoPelotas.playVideo(fps)
+            video = VideoReader(self.filePath_edit.text())#'D:/aire2.cine'
+            video.cropVideo(self.minHeight_slider.value(),
+                            self.maxHeight_slider.value(),
+                            self.minWidth_slider.value(),
+                            self.maxWidth_slider.value()) #0,790,300,1190
+            video.playVideo(fps)
         except:
             print('Incorrect or empty file selected')
             print(self.filePath_edit.text())
@@ -166,6 +182,18 @@ class GuiEvents(Ui_ventanaPrincipal):
     
     def closeWindow(self):
         pass
+    
+    def trackParticles(self):
+        video = VideoReader(self.filePath_edit.text())
+        video.cropVideo(self.minHeight_slider.value(),
+                        self.maxHeight_slider.value(),
+                        self.minWidth_slider.value(),
+                        self.maxWidth_slider.value()) #0,790,300,1190
+        
+        initialFrame = self.initialFrame_spinBox.value()
+        finalFrame = self.finalFrame_spinBox.value()
+        particles = video.detectCircles(initialFrame,finalFrame)
+        print(particles)
 
 
 
