@@ -8,7 +8,7 @@ import pims
 import PyQt5
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QWidget, QFileDialog
-from video import VideoReader
+from video import VideoReader, linkTrajectories
 from interface import Ui_ventanaPrincipal
 
 
@@ -39,6 +39,7 @@ class GuiEvents(Ui_ventanaPrincipal):
         self.playFps_slider.valueChanged.connect(self.updatePlayLength)
         self.selectFolder_button.clicked.connect(self.selectFolder)
         self.track_button.clicked.connect(self.trackParticles)
+        self.trajectories_button.clicked.connect(self.findTrajectories)
         
         self.folderPath_edit.textChanged.connect(self.enableButtons)
         self.filePath_edit.textChanged.connect(self.enableButtons)
@@ -192,8 +193,21 @@ class GuiEvents(Ui_ventanaPrincipal):
         
         initialFrame = self.initialFrame_spinBox.value()
         finalFrame = self.finalFrame_spinBox.value()
-        particles = video.detectCircles(initialFrame,finalFrame)
-        print(particles)
+        
+        self.particles = video.detectCircles(initialFrame,finalFrame)
+        
+        model = PandasModel(self.particles)
+        self.tracking_tableView.setModel(model)
+        
+        self.trajectories_button.setDisabled(False)
+        print(self.particles)
+        
+    def findTrajectories(self):
+        removeDrift = self.removeDrift_checkBox.checkState()
+        self.trajectories = linkTrajectories(self.particles, removeDrift)
+        
+        model = PandasModel(self.trajectories)
+        self.tracking_tableView.setModel(model)
 
 
 
@@ -308,6 +322,28 @@ class SelectFileDialog(QWidget):
             print(fileName)
 
 
+
+class PandasModel(QtCore.QAbstractTableModel):
+    """
+    Class to populate a table view with a pandas dataframe
+    https://stackoverflow.com/questions/31475965/fastest-way-to-populate-qtableview-from-pandas-data-frame
+    """
+    def __init__(self, data, parent=None):
+        QtCore.QAbstractTableModel.__init__(self, parent)
+        self._data = data
+
+    def rowCount(self, parent=None):
+        return len(self._data.values)
+
+    def columnCount(self, parent=None):
+        return self._data.columns.size
+
+    def data(self, index, role=QtCore.Qt.DisplayRole):
+        if index.isValid():
+            if role == QtCore.Qt.DisplayRole:
+                return QtCore.QVariant(str(
+                    self._data.values[index.row()][index.column()]))
+        return QtCore.QVariant()
 
 
 

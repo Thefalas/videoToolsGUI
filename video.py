@@ -188,14 +188,14 @@ class VideoReader():
         return circles_tp
     
     
-    def linkTrajectories(self, circles_tp, removeDrift=False):
+def linkTrajectories(circles_tp, removeDrift=False):
         
-        trajectories = tp.link_df(circles_tp, 5, memory=10)
-        if removeDrift == True:
-            drift = tp.compute_drift(trajectories)
-            trajectories = tp.subtract_drift(trajectories.copy(), drift)
+    trajectories = tp.link_df(circles_tp, 5, memory=10)
+    if removeDrift == True:
+        drift = tp.compute_drift(trajectories)
+        trajectories = tp.subtract_drift(trajectories.copy(), drift)
             
-        return trajectories
+    return trajectories
     
     
     
